@@ -1,0 +1,63 @@
+openapi: 3.1.0
+info:
+  title: Kanban Board API — health
+  version: 0.1.0
+  description: Health check for the dev environment (FR-006, FR-006a). Served over HTTPS only.
+servers:
+  - url: https://{cloudfrontDomain}/api
+    variables:
+      cloudfrontDomain:
+        default: example.cloudfront.net
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Report whether the backend can reach the database.
+      security: []
+      responses:
+        '200':
+          description: Backend can reach the database.
+          headers:
+            x-request-id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+              example:
+                status: healthy
+        '503':
+          description: Backend cannot reach the database.
+          headers:
+            x-request-id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+              example:
+                status: unhealthy
+        '500':
+          description: Unexpected error.
+          headers:
+            x-request-id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: './error-response.schema.json'
+components:
+  headers:
+    RequestId:
+      description: Request identifier; matches `requestId` in logs and error responses.
+      schema:
+        type: string
+  schemas:
+    Health:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]

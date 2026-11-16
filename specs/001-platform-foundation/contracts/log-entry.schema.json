@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "log-entry.schema.json",
+  "title": "LogEntry",
+  "description": "Structured backend log entry written to CloudWatch Logs (FR-010). Must never contain secrets or credentials.",
+  "type": "object",
+  "required": ["timestamp", "level", "message", "service"],
+  "properties": {
+    "timestamp": { "type": "string", "format": "date-time" },
+    "level": { "enum": ["DEBUG", "INFO", "WARN", "ERROR"] },
+    "message": { "type": "string" },
+    "service": { "type": "string" },
+    "requestId": { "type": "string" },
+    "error": {
+      "type": "object",
+      "required": ["name", "message"],
+      "properties": {
+        "name": { "type": "string" },
+        "message": { "type": "string" },
+        "stack": { "type": "string" }
+      }
+    }
+  }
+}
