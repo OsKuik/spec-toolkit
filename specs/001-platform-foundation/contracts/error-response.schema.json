@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "error-response.schema.json",
+  "title": "ErrorResponse",
+  "description": "Consistent error body for unexpected backend errors (FR-011). Never contains stack traces or internal details.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["error"],
+  "properties": {
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "requestId"],
+      "properties": {
+        "code": { "type": "string", "examples": ["INTERNAL_ERROR"] },
+        "message": { "type": "string", "examples": ["Something went wrong. Try again later."] },
+        "requestId": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
