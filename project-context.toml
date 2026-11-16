@@ -1,0 +1,10 @@
+[project]
+name = "Kanban Board"
+description = "What the project does"
+
+[github_project]
+owner = "OsKuik"
+number = 1
+
+[review]
+required_approvals = 0
