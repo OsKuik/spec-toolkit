@@ -19,10 +19,12 @@ and a logging and error-handling baseline.
 - Q: Who should be able to reach the deployed dev environment's web page and health check? → A:
   Publicly reachable over HTTPS; the health check reveals only healthy/unhealthy.
 - Q: How should the 70% minimum test coverage be measured? → A: Line coverage of at least 70%,
-  measured over the whole repository combined.
+  measured over the whole repository combined (scope refined below).
 - Q: How long should the dev environment keep its centralized logs? → A: 7 days.
 - Q: When the dev environment is destroyed, what should happen to the data in its database? → A:
   Data is deleted with the environment; redeploy starts with an empty database.
+- Q: Which code should count toward the 70% line-coverage minimum? → A: All application and
+  infrastructure TypeScript source (web, API, CDK) combined; toolkit scripts are excluded.
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -147,8 +149,9 @@ documentation and runs the local checks and the deploy procedure successfully.
 - **FR-001**: Every pull request to `main` MUST run the required checks automatically: lint,
   type-check, unit tests with coverage reporting, build, and infrastructure synthesis.
 - **FR-002**: Merge to `main` MUST be blocked while any required check fails or has not run.
-- **FR-003**: The coverage check MUST fail when line coverage, measured over the whole repository
-  combined, is below 70%.
+- **FR-003**: The coverage check MUST fail when line coverage, measured over all application and
+  infrastructure source combined (web, backend, infrastructure code; toolkit scripts excluded), is
+  below 70%.
 - **FR-004**: All dev environment infrastructure MUST be defined as code in the repository and be
   deployable from a clean checkout with no manual resource changes.
 - **FR-005**: The dev environment MUST include a minimal web page, a minimal backend with a health
@@ -182,8 +185,8 @@ documentation and runs the local checks and the deploy procedure successfully.
   reproducible from a commit on `main`. Its data is disposable.
 - **Required check**: A named automated verification (lint, type-check, unit tests, coverage,
   build, infrastructure synthesis) whose result gates merge.
-- **Health status**: The result of the health check: healthy or unhealthy, with the reason when
-  unhealthy.
+- **Health status**: The result of the health check: healthy or unhealthy only. The cause of an
+  unhealthy result is logged, not returned.
 - **Log entry**: A structured record with timestamp, severity, request identifier, message and
   optional error details.
 
@@ -215,7 +218,9 @@ documentation and runs the local checks and the deploy procedure successfully.
   roadmap entries 002 and 003.
 - The team has an AWS account (or accounts) available for the dev environment and can grant the
   repository's automation deploy access.
-- The required approvals count and branch protection are already configured on the repository;
-  this feature adds the required checks they enforce.
+- Branch protection on `main` is already configured on the repository; this feature adds the
+  required checks it enforces. The ruleset's approval count is currently 0
+  (`[review] required_approvals` in `project-context.toml`), which conflicts with the
+  constitution's minimum of 1; correcting it is a follow-up outside this feature.
 - The constitution's technology baseline applies; the specific architecture is decided in the
   plan and reviewed by the full team (FR-013).

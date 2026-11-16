@@ -11,7 +11,7 @@ Returned by `GET /api/health` ([contract](./contracts/health.openapi.yaml)).
 
 | Field | Type | Rules |
 | --- | --- | --- |
-| `status` | `"healthy"` \| `"unhealthy"` | `healthy` only if a `SELECT 1` against the database succeeds within the timeout (FR-006) |
+| `status` | `"healthy"` \| `"unhealthy"` | `healthy` only if a `SELECT 1` against the database succeeds; secret fetch, connect and query are each bounded at 2 s (about 6 s worst case), inside a 10 s Lambda timeout (FR-006, R8) |
 
 - HTTP 200 with `healthy`; HTTP 503 with `unhealthy`.
 - No other fields: no versions, hostnames, error text or timings (FR-006: reveals only
@@ -38,7 +38,7 @@ Written by backend components to CloudWatch Logs ([schema](./contracts/log-entry
 | `level` | `DEBUG` \| `INFO` \| `WARN` \| `ERROR` | Required |
 | `message` | string | Required |
 | `service` | string | Required, e.g. `api-health` |
-| `requestId` | string | Required for request-scoped entries |
+| `requestId` | string | Required for request-scoped entries; the API Gateway request ID, added with `logger.appendKeys` (R8) |
 | `error` | object (`name`, `message`, `stack`) | Present for `ERROR` entries only |
 
 - Never contains secrets, credentials, database connection strings or tokens (FR-010).
@@ -48,11 +48,13 @@ Written by backend components to CloudWatch Logs ([schema](./contracts/log-entry
 
 | Attribute | Rules |
 | --- | --- |
-| Source | Exactly one commit on `main`; the latest merged commit after each deploy (FR-007) |
+| Source | Exactly one commit on `main`; the latest merged commit after each deploy (FR-007). Deploys run only through `deploy-dev.yml` from `main` (R9) |
 | Lifecycle | `absent` → `deploying` → `deployed` → (`deploying` on next merge) → `destroyed` |
 | Data | Disposable; destroyed with the environment; redeploy starts empty (FR-012a) |
 
-A failed deploy rolls back to the previous `deployed` state (CloudFormation rollback).
+A failed deploy rolls back the failing stack (CloudFormation rollback). Stacks that already
+finished in that run stay on the new commit; the environment remains redeployable, and the next
+successful deploy converges every stack on one commit (R9).
 
 ## Required check
 
